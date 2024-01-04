@@ -131,29 +131,29 @@ class NBAScraper:
             time.sleep(35)
         return df
     
-    def main():
-        # Create an ArgumentParser
-        parser = argparse.ArgumentParser(description="Scrape NBA data for specified years and save to CSV.")
+def main():
+    # Create an ArgumentParser
+    parser = argparse.ArgumentParser(description="Scrape NBA data for specified years and save to CSV.")
 
-        # Add argument for beginning year
-        parser.add_argument("--beginning", type=int, default=2013, help="Beginning year for scraping")
+    # Add argument for beginning year
+    parser.add_argument("--beginning", type=int, default=2013, help="Beginning year for scraping")
 
-        # Add argument for end year
-        parser.add_argument("--end", type=int, default=2024, help="End year (exclusive) for scraping")
+    # Add argument for end year
+    parser.add_argument("--end", type=int, default=2024, help="End year (exclusive) for scraping")
 
-        # Parse command-line arguments
-        args = parser.parse_args()
+    # Parse command-line arguments
+    args = parser.parse_args()
 
-        # Create an instance of NBAScraper
-        nba_scraper = NBAScraper()
+    # Create an instance of NBAScraper
+    nba_scraper = NBAScraper()
 
-        # Call the method to fetch and concatenate data for the specified range of years
-        nba_data = nba_scraper.data_years(beginning=args.beginning, end=args.end)
+    # Call the method to fetch and concatenate data for the specified range of years
+    nba_data = nba_scraper.data_years(beginning=args.beginning, end=args.end)
 
-        # Save the DataFrame to a CSV file
-        output_path = Path('data') / 'nba_data.csv'
-        nba_data.to_csv(output_path, index=False)
-        print(f"Data saved to: {output_path}")
+    # Save the DataFrame to a CSV file
+    output_path = Path('data') / 'nba_data.csv'
+    nba_data.to_csv(output_path, index=False)
+    print(f"Data saved to: {output_path}")
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
