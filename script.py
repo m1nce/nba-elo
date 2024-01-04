@@ -3,6 +3,7 @@ import requests
 import bs4
 import time
 from pathlib import Path
+import argparse
 
 class NBAScraper:
     def __init__(self):
