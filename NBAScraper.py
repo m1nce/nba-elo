@@ -78,6 +78,7 @@ class NBAScraper:
 
         # collect data
         date, start, visitor, visitor_pts, home, home_pts, box_score, ot, attend, arena, notes = [], [], [], [], [], [], [], [], [], [], []
+        playoffs_started = False
         for game in soup:
             date.append(game.find_all('th')[0].text)
             start.append(game.find_all('td')[0].text)
@@ -89,7 +90,17 @@ class NBAScraper:
             ot.append(game.find_all('td')[6].text)
             attend.append(game.find_all('td')[7].text)
             arena.append(game.find_all('td')[8].text)
-            notes.append(game.find_all('td')[9].text)
+
+            note = game.find_all('td')[9].text
+
+            # change note to 'Playoffs' if playoffs have started
+            if 'Play-In Game' in note:
+                playoffs_started = True
+            
+            if playoffs_started and 'Play-In Game' not in note:
+                note = 'Playoffs'
+
+            notes.append(note)
         
         # create DataFrame
         data = {'Date': date, 
