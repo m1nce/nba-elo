@@ -2,11 +2,17 @@ import pandas as pd
 import requests
 import bs4
 import time
+from datetime import datetime
 from pathlib import Path
+from tqdm import tqdm
 import argparse
+from PlayoffScraper import PlayoffScraper
 
 class NBAScraper:
     def __init__(self):
+        """
+        Initializes the NBAScraper object.
+        """
         pass
 
     @staticmethod
@@ -46,8 +52,7 @@ class NBAScraper:
         # If no specific rule is found, the URL is allowed
         return True
 
-    @staticmethod
-    def get_data(url):
+    def get_data(self, url, start_playoff, end_playoff):
         """
         Creates DataFrame containing a month's amount of data from url.
         ---
@@ -78,9 +83,11 @@ class NBAScraper:
 
         # collect data
         date, start, visitor, visitor_pts, home, home_pts, box_score, ot, attend, arena, notes = [], [], [], [], [], [], [], [], [], [], []
-        playoffs_started = False
         for game in soup:
-            date.append(game.find_all('th')[0].text)
+            game_date_str = game.find_all('th')[0].text
+            game_date = datetime.strptime(game_date_str, '%a, %b %d, %Y')
+
+            date.append(game_date)
             start.append(game.find_all('td')[0].text)
             visitor.append(game.find_all('td')[1].text)
             visitor_pts.append(game.find_all('td')[2].text)
@@ -94,10 +101,7 @@ class NBAScraper:
             note = game.find_all('td')[9].text
 
             # change note to 'Playoffs' if playoffs have started
-            if 'Play-In Game' in note:
-                playoffs_started = True
-            
-            if playoffs_started and 'Play-In Game' not in note:
+            if start_playoff <= game_date <= end_playoff:
                 note = 'Playoffs'
 
             notes.append(note)
@@ -121,16 +125,19 @@ class NBAScraper:
         Creates DataFrame for a specific year.
         ---
         Parameters:
-            year: number representing what year to scrape
+            year: integer, representing what year to scrape
         ---
         Returns a DataFrame containing the data.
         """
         df = pd.DataFrame()
         months = ['october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june']
+
+        playoff_scraper = PlayoffScraper()
+        start_playoff, end_playoff = playoff_scraper.get_data(year)
         for month in months:
             url = f'https://www.basketball-reference.com/leagues/NBA_{year}_games-{month}.html'
             try: 
-                df = pd.concat([df, self.get_data(url)], ignore_index=True)
+                df = pd.concat([df, self.get_data(url, start_playoff, end_playoff)], ignore_index=True)
             except:
                 pass
         return df
@@ -152,7 +159,14 @@ class NBAScraper:
             temp_df = self.nba_season(i)
             df = pd.concat([df, temp_df], ignore_index=True)
             # sleep to comply with crawler traffic. https://www.sports-reference.com/bot-traffic.html
-            time.sleep(35)
+            total_sleep_time = 35
+            update_interval = 1
+            with tqdm(total=total_sleep_time, desc='Loading', unit='sec') as pbar:
+                for i in range(0, total_sleep_time, update_interval):
+                    # Sleep for the update interval
+                    time.sleep(update_interval)
+                    # Update the progress bar
+                    pbar.update(update_interval)
         return df
     
 def main():
