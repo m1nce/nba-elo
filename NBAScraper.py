@@ -137,6 +137,7 @@ class NBAScraper:
         """
         df = pd.DataFrame()
         for i in range(beginning, end):
+            print(f"Fetching {i - 1}-{i} season...")
             temp_df = self.nba_season(i)
             df = pd.concat([df, temp_df], ignore_index=True)
             # sleep to comply with crawler traffic. https://www.sports-reference.com/bot-traffic.html
