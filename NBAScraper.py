@@ -15,7 +15,10 @@ class NBAScraper:
         Returns a boolean value representing if a url is allowed 
         to be scraped, according to the site's robots.txt
         ---
-        url: string representing url to scrape
+        Parameters:
+            url: string representing url to scrape
+        ---
+        Returns a boolean value.
         """
         # Get robots.txt
         url_split = url.split("/")
@@ -48,7 +51,10 @@ class NBAScraper:
         """
         Creates DataFrame containing a month's amount of data from url.
         ---
-        url: string representing url to scrape
+        Parameters:
+            url: string representing url to scrape
+        ---
+        Returns a DataFrame containing the data.
         """
         # Make request to site
         response = requests.get(url)
@@ -103,7 +109,10 @@ class NBAScraper:
         """
         Creates DataFrame for a specific year.
         ---
-        year: number representing what year to scrape
+        Parameters:
+            year: number representing what year to scrape
+        ---
+        Returns a DataFrame containing the data.
         """
         df = pd.DataFrame()
         months = ['october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june']
@@ -120,8 +129,11 @@ class NBAScraper:
         Creates DataFrame that contains data from a specific range of years. Default
         values includes only the modern years of the NBA.
         ---
-        beginning: first year to include (inclusive)
-        end: last year to not include
+        Parameters:
+            beginning: first year to include (inclusive)
+            end: last year to not include
+        ---
+        Returns a DataFrame containing the data.
         """
         df = pd.DataFrame()
         for i in range(beginning, end):
