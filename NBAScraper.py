@@ -148,10 +148,10 @@ def main():
     parser = argparse.ArgumentParser(description="Scrape NBA data for specified years and save to CSV.")
 
     # Add argument for beginning year
-    parser.add_argument("--beginning", type=int, default=2013, help="Beginning year for scraping")
+    parser.add_argument("--beginning", type=int, default=2013, help="Beginning of season for scraping")
 
     # Add argument for end year
-    parser.add_argument("--end", type=int, default=2024, help="End year (exclusive) for scraping")
+    parser.add_argument("--end", type=int, default=2024, help="End of season (exclusive) for scraping")
 
     # Parse command-line arguments
     args = parser.parse_args()
@@ -160,10 +160,11 @@ def main():
     nba_scraper = NBAScraper()
 
     # Call the method to fetch and concatenate data for the specified range of years
+    print(f"Scraping data for the years {args.beginning - 1} to {args.end - 1}...")
     nba_data = nba_scraper.data_years(beginning=args.beginning, end=args.end)
 
     # Save the DataFrame to a CSV file
-    output_path = Path('data') / 'nba_data.csv'
+    output_path = Path('data') / f"{args.beginning - 1}-{args.end - 1}.csv"
     nba_data.to_csv(output_path, index=False)
     print(f"Data saved to: {output_path}")
 
