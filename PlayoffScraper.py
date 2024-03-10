@@ -24,30 +24,33 @@ class PlayoffScraper:
         response.raise_for_status()
 
         soup = bs4.BeautifulSoup(response.text, 'lxml')
-        if year == 2020:
-            dates = (soup.find('body')
-                         .find('div', class_='mw-page-container')
-                         .find('div', class_='mw-page-container-inner')
-                         .find('div', class_='mw-content-container')
-                         .find('main', class_='mw-body')
-                         .find('div', class_='mw-body-content')
-                         .find('div', class_='mw-content-ltr mw-parser-output')
-                         .find('table', class_='infobox vcard')
-                         .find('tbody')
-                         .find_all('tr')[3]
-                         .find('td', class_='infobox-data')).text
-        else:
-            dates = (soup.find('body')
-                         .find('div', class_='mw-page-container')
-                         .find('div', class_='mw-page-container-inner')
-                         .find('div', class_='mw-content-container')
-                         .find('main', class_='mw-body')
-                         .find('div', class_='mw-body-content')
-                         .find('div', class_='mw-content-ltr mw-parser-output')
-                         .find('table', class_='infobox vcard')
-                         .find('tbody')
-                         .find_all('tr')[1]
-                         .find('td')).text
+        try:
+            if year == 2020:
+                dates = (soup.find('body')
+                            .find('div', class_='mw-page-container')
+                            .find('div', class_='mw-page-container-inner')
+                            .find('div', class_='mw-content-container')
+                            .find('main', class_='mw-body')
+                            .find('div', class_='mw-body-content')
+                            .find('div', class_='mw-content-ltr mw-parser-output')
+                            .find('table', class_='infobox vcard')
+                            .find('tbody')
+                            .find_all('tr')[3]
+                            .find('td', class_='infobox-data')).text
+            else:
+                dates = (soup.find('body')
+                            .find('div', class_='mw-page-container')
+                            .find('div', class_='mw-page-container-inner')
+                            .find('div', class_='mw-content-container')
+                            .find('main', class_='mw-body')
+                            .find('div', class_='mw-body-content')
+                            .find('div', class_='mw-content-ltr mw-parser-output')
+                            .find('table', class_='infobox vcard')
+                            .find('tbody')
+                            .find_all('tr')[1]
+                            .find('td')).text
+        except AttributeError:
+            return None, None
         
         # Extract the year
         date = dates.split(', ')

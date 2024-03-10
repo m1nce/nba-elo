@@ -133,7 +133,8 @@ class NBAScraper:
         months = ['october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june']
 
         playoff_scraper = PlayoffScraper()
-        start_playoff, end_playoff = playoff_scraper.get_data(year)
+        if year + 1 <= datetime.now().year:
+            start_playoff, end_playoff = playoff_scraper.get_data(year + 1)
         for month in months:
             url = f'https://www.basketball-reference.com/leagues/NBA_{year}_games-{month}.html'
             try: 
@@ -142,7 +143,7 @@ class NBAScraper:
                 pass
         return df
 
-    def data_years(self, beginning=2013, end=2024):
+    def data_years(self, beginning=2013, end=2023):
         """
         Creates DataFrame that contains data from a specific range of years. Default
         values includes only the modern years of the NBA.
@@ -154,9 +155,9 @@ class NBAScraper:
         Returns a DataFrame containing the data.
         """
         df = pd.DataFrame()
-        for i in range(beginning, end):
-            print(f"Fetching {i - 1}-{i} season...")
-            temp_df = self.nba_season(i)
+        for i in range(beginning, end + 1):
+            print(f"Fetching {i}-{i + 1} season...")
+            temp_df = self.nba_season(i + 1)
             df = pd.concat([df, temp_df], ignore_index=True)
             # sleep to comply with crawler traffic. https://www.sports-reference.com/bot-traffic.html
             total_sleep_time = 35
@@ -177,7 +178,7 @@ def main():
     parser.add_argument("--beginning", type=int, default=2013, help="Beginning of season for scraping")
 
     # Add argument for end year
-    parser.add_argument("--end", type=int, default=2024, help="End of season (exclusive) for scraping")
+    parser.add_argument("--end", type=int, default=2023, help="Last season to scrape")
 
     # Parse command-line arguments
     args = parser.parse_args()
@@ -186,11 +187,11 @@ def main():
     nba_scraper = NBAScraper()
 
     # Call the method to fetch and concatenate data for the specified range of years
-    print(f"Scraping data for the years {args.beginning - 1} to {args.end - 1}...")
+    print(f"Scraping data for the {args.beginning} to {args.end} seasons...")
     nba_data = nba_scraper.data_years(beginning=args.beginning, end=args.end)
 
     # Save the DataFrame to a CSV file
-    output_path = Path('data') / f"{args.beginning - 1}-{args.end - 1}.csv"
+    output_path = Path('data') / f"{args.beginning}-{args.end - 1}.csv"
     nba_data.to_csv(output_path, index=False)
     print(f"Data saved to: {output_path}")
 
