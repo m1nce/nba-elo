@@ -133,8 +133,8 @@ class NBAScraper:
         months = ['october', 'november', 'december', 'january', 'february', 'march', 'april', 'may', 'june']
 
         playoff_scraper = PlayoffScraper()
-        if year + 1 <= datetime.now().year:
-            start_playoff, end_playoff = playoff_scraper.get_data(year + 1)
+        if year <= datetime.now().year:
+            start_playoff, end_playoff = playoff_scraper.get_data(year)
         for month in months:
             url = f'https://www.basketball-reference.com/leagues/NBA_{year}_games-{month}.html'
             try: 
@@ -191,7 +191,7 @@ def main():
     nba_data = nba_scraper.data_years(beginning=args.beginning, end=args.end)
 
     # Save the DataFrame to a CSV file
-    output_path = Path('data') / f"{args.beginning}-{args.end - 1}.csv"
+    output_path = Path('data') / f"{args.beginning}-{args.end}.csv"
     nba_data.to_csv(output_path, index=False)
     print(f"Data saved to: {output_path}")
 
