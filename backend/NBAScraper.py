@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
 import argparse
-from PlayoffScraper import PlayoffScraper
+from .PlayoffScraper import PlayoffScraper
 
 DB_PATH = Path('data') / 'nba.db'
 

@@ -4,3 +4,12 @@ __pycache__/
 data/
 CLAUDE.md
 .DS_Store
+
+# Environment
+.env
+.python-version
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
