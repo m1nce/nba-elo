@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap');
+
+h1, h2, h3 {
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 1px;
+}
+
+.nav-tabs .nav-link {
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.nav-tabs .nav-link.active {
+  font-weight: 600;
+  color: #111;
+}
+
+.tab-content {
+  padding-top: 1rem;
+}
+
+/* Team picker grid */
+.team-picker {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.team-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 58px;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: grab;
+    user-select: none;
+    border: 1px solid rgba(0,0,0,0.08);
+    transition: background 0.15s;
+}
+.team-tile:hover { background: rgba(0,0,0,0.06); }
+.team-tile:active { cursor: grabbing; }
+
+/* Drop zone labels */
+.dnd-slot-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #888;
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+/* Drop zones */
+.dnd-slot {
+    min-height: 100px;
+    border: 2px dashed rgba(0,0,0,0.18);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, background 0.15s;
+    padding: 12px 8px;
+}
+.dnd-slot.drag-over {
+    border-color: #2c7be5;
+    background: rgba(44,123,229,0.06);
+}
+
+/* H2H filter — segmented control */
+.h2h-segment-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.h2h-segment-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #888;
+  white-space: nowrap;
+}
+
+.h2h-segment {
+  background: #efefef;
+  border-radius: 999px;
+  padding: 3px;
+  display: inline-flex;
+}
+
+.h2h-segment .btn {
+  border-radius: 999px !important;
+  border: none !important;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  background: transparent !important;
+  color: #666 !important;
+  box-shadow: none !important;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.h2h-segment .btn:hover {
+  background: rgba(0,0,0,0.05) !important;
+  color: #333 !important;
+}
+
+/* Active segment — raised white pill */
+.h2h-segment .btn-primary {
+  background: #fff !important;
+  color: #2c7be5 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15) !important;
+}
+
+.h2h-segment .btn-primary:hover {
+  background: #fff !important;
+  color: #2c7be5 !important;
+}

@@ -1,3 +1,4 @@
+import re
 import requests
 import bs4
 from datetime import datetime
@@ -20,7 +21,8 @@ class PlayoffScraper:
         """
 
         url = f'https://en.wikipedia.org/wiki/{year}_NBA_playoffs'
-        response = requests.get(url)
+        headers = {'User-Agent': 'Mozilla/5.0 (compatible; nba-elo-scraper/1.0)'}
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
 
         soup = bs4.BeautifulSoup(response.text, 'lxml')
@@ -52,16 +54,25 @@ class PlayoffScraper:
         except AttributeError:
             return None, None
         
-        # Extract the year
-        date = dates.split(', ')
-        year = date[1]
-        # Extract and format the start and end date strings
-        start_date_str = date[0].split('–')[0].strip() + ', ' + year
-        end_date_str = date[0].split('–')[1].strip() + ', ' + year
+        # Extract year with regex to handle varying Wikipedia date formats
+        year_match = re.search(r'\b(\d{4})\b', dates)
+        if not year_match:
+            return None, None
+        year_str = year_match.group(1)
+
+        # Extract date range (handles both '–' en-dash and '-' hyphen)
+        range_match = re.search(r'([A-Za-z]+ \d+)\s*[–-]\s*([A-Za-z]+ \d+)', dates)
+        if not range_match:
+            return None, None
+        start_date_str = range_match.group(1) + ', ' + year_str
+        end_date_str = range_match.group(2) + ', ' + year_str
 
         # Parse the start and end date strings into datetime objects
-        start_date = datetime.strptime(start_date_str, '%B %d, %Y')
-        end_date = datetime.strptime(end_date_str, '%B %d, %Y')
+        try:
+            start_date = datetime.strptime(start_date_str, '%B %d, %Y')
+            end_date = datetime.strptime(end_date_str, '%B %d, %Y')
+        except ValueError:
+            return None, None
 
         # Return the datetime objects
         return start_date, end_date

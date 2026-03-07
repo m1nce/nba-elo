@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 
+HOME_ADVANTAGE = 100  # Elo points added to home team's effective rating
+REVERSION_FACTOR = 1 / 3  # Fraction to pull toward mean between seasons
+
+
 class NBARater:
     def __init__(self):
         """
@@ -16,10 +20,11 @@ class NBARater:
             'Portland Trail Blazers', 'Sacramento Kings', 'San Antonio Spurs', 'Toronto Raptors',
             'Utah Jazz', 'Washington Wizards',
         ]
-        
-        # Initialize each team with a default ELO rating of 1200 using a dictionary comprehension
-        self.teams = {team: np.array([1200]) for team in team_names}
+
+        # Use lists for O(1) appends; converted to numpy arrays in getTeams()
+        self.teams = {team: [1200] for team in team_names}
         self.win_streaks = {team: 0 for team in team_names}
+        self.game_log = []
 
 
     @staticmethod
@@ -68,108 +73,149 @@ class NBARater:
             'New Orleans Jazz': 'Utah Jazz',
         }
         return name_changes.get(team_name, team_name)
-    
+
 
     @staticmethod
-    def expectedResult(team1, team2):
+    def expectedResult(visitor_rating, home_rating):
         """
-        Calculates the expected result of a game between two teams 
-        with different ratings.
+        Calculates the expected result for the visitor.
+        Home team receives a HOME_ADVANTAGE Elo bonus to their effective rating.
         ---
         Parameters:
-            team1: float, rating of first team. 
-            team2: float, rating of second team.
+            visitor_rating: float, Elo rating of the visiting team.
+            home_rating: float, Elo rating of the home team.
         ---
-        Returns the expected result of the game.
+        Returns the visitor's expected score (probability of winning).
         """
-        return 10**(team1/400) / (10**(team1/400) + 10**(team2/400))
+        adjusted_home = home_rating + HOME_ADVANTAGE
+        return 10**(visitor_rating / 400) / (10**(visitor_rating / 400) + 10**(adjusted_home / 400))
 
-
-    def updateElo(self, original_rating, expected_score, actual_score, team, k=20):
-        """
-        Calculates the updated Elo of a team.
-        ---
-        Parameters:
-            original_rating: float, original rating of the team.
-            expected_score: float, expected result of the game the team partook in.
-            actual_score: float, actual result of the game.
-            team: str, name of the team.
-            k: int, k-factor (the maximum possible adjustment of score per game)
-        ---
-        Returns the updated Elo rating of the team.
-        """
-        return original_rating + k * (actual_score - expected_score) + self.win_streak_bonus(team)
-    
 
     def win_streak_bonus(self, team, base=1.1):
         """
-        Adds a win streak bonus to the team's Elo rating using a 
-        logarithmic approach.
+        Computes a win streak bonus using a logarithmic approach.
+        Requires a minimum streak of 3 to activate.
         ---
         Parameters:
             team: str, name of the team.
-            base: float, base value of the bonus.
+            base: float, base of the exponential bonus.
         ---
-        Returns the win streak bonus.
+        Returns the bonus Elo points to award the winner (and subtract from the loser).
         """
-        # Baseline of at least 3 wins to get a bonus
         win_streak = self.win_streaks[team]
         if win_streak < 3:
             return 0
         return (base ** (win_streak - 2)) - 1
-    
+
+
+    def _get_season(self, date):
+        """Returns the season start year for a given date (seasons begin in October)."""
+        return date.year if date.month >= 10 else date.year - 1
+
+
+    def _apply_mean_reversion(self, mean=1200):
+        """Pulls every team's current rating 1/3 of the way toward the mean in-place."""
+        for team in self.teams:
+            current = self.teams[team][-1]
+            self.teams[team][-1] = current + REVERSION_FACTOR * (mean - current)
+
 
     def eloSimulator(self, df):
         """
-        Simulates an Elo rating simulator to given data.
+        Simulates Elo ratings across all games in the DataFrame.
         ---
         Parameters:
-            df: pandas DataFrame object, contains NBA games.
+            df: pandas DataFrame with columns: Date, Visitor, Home, Win, Notes.
         """
-        for index, row in df.iterrows():
-            team1_result = row['Win']
-            team2_result = 1 - team1_result
+        current_season = None
 
-            team1, team2 = row['Visitor'], row['Home']
+        for _, row in df.iterrows():
+            date = pd.to_datetime(row['Date'])
+            season = self._get_season(date)
 
-            # Maps old team names to their current names
-            team1 = self.map_team_names(team1)
-            team2 = self.map_team_names(team2)
+            # Apply mean reversion at each season boundary
+            if current_season is not None and season != current_season:
+                self._apply_mean_reversion()
+            current_season = season
 
-            # Calculates win streaks
-            if team1_result == 1:
-                self.win_streaks[team1] += 1
-                self.win_streaks[team2] = 0
-            else:
-                self.win_streaks[team2] += 1
-                self.win_streaks[team1] = 0
+            visitor_result = row['Win']
+            home_result = 1 - visitor_result
 
-            # Calculates expected results
-            team1_expected = self.expectedResult(self.teams[team1][-1], self.teams[team2][-1])
-            team2_expected = self.expectedResult(self.teams[team2][-1], self.teams[team1][-1])
+            visitor = self.map_team_names(row['Visitor'])
+            home = self.map_team_names(row['Home'])
 
-            # Updates Elo ratings
-            team1_updated_elo = self.updateElo(self.teams[team1][-1], team1_expected, team1_result, team1)
-            team2_updated_elo = self.updateElo(self.teams[team2][-1], team2_expected, team2_result, team2)
+            # Update win streaks and compute streak bonus for the winner (zero-sum)
+            if visitor_result == 1:
+                self.win_streaks[visitor] += 1
+                self.win_streaks[home] = 0
+                streak_bonus = self.win_streak_bonus(visitor)
+            elif visitor_result == 0:
+                self.win_streaks[home] += 1
+                self.win_streaks[visitor] = 0
+                streak_bonus = self.win_streak_bonus(home)
+            else:  # tie
+                self.win_streaks[visitor] = 0
+                self.win_streaks[home] = 0
+                streak_bonus = 0
 
-            # Ensures that Elo ratings do not go below 0
-            if team1_updated_elo < 0:
-                team1_updated_elo = 0
-            elif team2_updated_elo < 0:
-                team2_updated_elo = 0  
+            # Expected results (home court advantage baked into expectedResult)
+            old_visitor_rating = self.teams[visitor][-1]
+            old_home_rating = self.teams[home][-1]
+            visitor_expected = self.expectedResult(old_visitor_rating, old_home_rating)
+            home_expected = 1 - visitor_expected
 
-            # Appends updated Elo ratings to the teams' Elo data
-            self.teams[team1] = np.append(self.teams[team1], 
-                                          team1_updated_elo)
-            self.teams[team2] = np.append(self.teams[team2], 
-                                          team2_updated_elo)
+            k = 48 if row['Notes'] == 'Playoffs' else 32
+
+            # Base Elo update (zero-sum: home_expected = 1 - visitor_expected)
+            visitor_new = old_visitor_rating + k * (visitor_result - visitor_expected)
+            home_new = old_home_rating + k * (home_result - home_expected)
+
+            # Apply streak bonus zero-sum: winner gains, loser loses the same amount
+            if visitor_result == 1:
+                visitor_new += streak_bonus
+                home_new -= streak_bonus
+            elif visitor_result == 0:
+                home_new += streak_bonus
+                visitor_new -= streak_bonus
+
+            # Floor at 0
+            if visitor_new < 0:
+                visitor_new = 0
+            if home_new < 0:
+                home_new = 0
+
+            self.teams[visitor].append(visitor_new)
+            self.teams[home].append(home_new)
+
+            self.game_log.append({
+                'date': date.strftime('%Y-%m-%d'),
+                'season': season,
+                'visitor': visitor,
+                'home': home,
+                'visitor_before': old_visitor_rating,
+                'home_before': old_home_rating,
+                'visitor_after': visitor_new,
+                'home_after': home_new,
+                'visitor_delta': visitor_new - old_visitor_rating,
+                'home_delta': home_new - old_home_rating,
+                'win_prob_visitor': visitor_expected,
+                'result': 'visitor' if visitor_result == 1 else 'home',
+                'notes': row['Notes'],
+            })
+
         return self
-            
+
 
     def getTeams(self):
         """
-        Accessor function for teams' Elo data.
+        Accessor for teams' Elo history.
         ---
-        Returns the team's Elo data.
+        Returns a dict of team name -> numpy array of rating history.
         """
-        return self.teams
+        return {team: np.array(ratings) for team, ratings in self.teams.items()}
+
+    def getGameLog(self):
+        """
+        Returns a DataFrame of per-game ELO changes recorded during eloSimulator().
+        """
+        return pd.DataFrame(self.game_log)

@@ -2,33 +2,34 @@
 
 # NBA Elo Simulator 🏀
 
-Inspired by [Mr V's Garage F1 ELO Engine](https://www.youtube.com/watch?v=U16a8tdrbII&t=329s), this project aims to simulate an Elo engine on NBA game data. 
+Inspired by [Mr V's Garage F1 ELO Engine](https://www.youtube.com/watch?v=U16a8tdrbII&t=329s), this project aims to simulate an Elo engine on NBA game data.
 
-Note: Data used in this project was web scraped from [basketball-reference.com](https://www.basketball-reference.com/) and [wikipedia.org](https://www.wikipedia.org/). 
+Note: Data used in this project was web scraped from [basketball-reference.com](https://www.basketball-reference.com/) and [wikipedia.org](https://www.wikipedia.org/).
 
 <!-- GETTING STARTED -->
 ## Getting Started
+
 The following instructions will guide you through setting up a copy of the project on your local machine for development and testing purposes.
 
 ### Prerequisites
+
 Before you begin, ensure you have the following installed:
 - Python 3.8 or higher
 - pip (Python package installer)
 
 ### Installation
+
 1. **Clone the Repository**
   ```bash
   git clone https://github.com/m1nce/nba-rating.git
   ```
-
 2. **Navigate to the Project Directory**
  ```bash
  cd nba-rating
  ```
 3. **Install necessary Python Packages**
  ```bash
- pip install numpy
- pip install pandas
+ uv sync
  ```
 <!-- LANGUAGES/FRAMEWORKS -->
 ## Built With

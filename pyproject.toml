@@ -1,0 +1,18 @@
+[project]
+name = "nba-elo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas",
+    "numpy",
+    "requests",
+    "beautifulsoup4",
+    "lxml",
+    "tqdm",
+    "plotly",
+    "streamlit",
+    "dash>=4.0.0",
+    "dash-bootstrap-components>=2.0.4",
+]
