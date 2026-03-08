@@ -23,6 +23,8 @@ export interface GameRow {
   season: number
   visitor: string
   home: string
+  v_logo: string | null
+  h_logo: string | null
   visitor_points: number | null
   home_points: number | null
   result: string | null

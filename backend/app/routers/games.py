@@ -6,6 +6,7 @@ from sqlalchemy import select, func, or_
 from ..database import get_db
 from ..models import Game
 from ..schemas import GameRow, PaginatedGames
+from ..team_meta import logo_url
 
 router = APIRouter()
 
@@ -17,6 +18,8 @@ def _game_to_row(g: Game) -> GameRow:
         season=g.season,
         visitor=g.visitor,
         home=g.home,
+        v_logo=logo_url(g.visitor),
+        h_logo=logo_url(g.home),
         visitor_points=g.visitor_points,
         home_points=g.home_points,
         result=g.result,
@@ -36,7 +39,7 @@ async def get_games(
     team: str = Query("All"),
     season: str = Query("All"),
     page: int = Query(0, ge=0),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ):
     base_query = select(Game).where(Game.visitor_points.isnot(None))

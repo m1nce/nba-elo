@@ -24,10 +24,8 @@ async def _run_refresh():
         await migrate(drop_first=False)
     finally:
         _refresh_running = False
-        # Invalidate upcoming cache
-        import backend.app.routers.upcoming as up_router
-        up_router._cache_data = None
-        up_router._cache_time = 0.0
+        from backend.app.routers.upcoming import refresh_upcoming_db
+        await refresh_upcoming_db()
 
 
 @router.post("/refresh")

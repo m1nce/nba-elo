@@ -27,6 +27,8 @@ class GameRow(BaseModel):
     season: int
     visitor: str
     home: str
+    v_logo: Optional[str] = None
+    h_logo: Optional[str] = None
     visitor_points: Optional[int] = None
     home_points: Optional[int] = None
     result: Optional[str] = None

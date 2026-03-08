@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, DateTime
 from .database import Base
 
 
@@ -30,3 +30,19 @@ class EloHistory(Base):
     team = Column(String, nullable=False, index=True)
     date = Column(String, nullable=False, index=True)
     elo = Column(Float, nullable=False)
+
+
+class UpcomingGameDB(Base):
+    __tablename__ = "upcoming_games"
+
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    date       = Column(String, nullable=False)   # "YYYY-MM-DD"
+    visitor    = Column(String, nullable=False)
+    home       = Column(String, nullable=False)
+    v_logo     = Column(String, nullable=True)
+    h_logo     = Column(String, nullable=True)
+    prob_v     = Column(Float, nullable=False)
+    prob_h     = Column(Float, nullable=False)
+    r_v        = Column(Float, nullable=False)
+    r_h        = Column(Float, nullable=False)
+    scraped_at = Column(DateTime(timezone=True), nullable=False)  # UTC

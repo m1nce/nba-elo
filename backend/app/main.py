@@ -1,14 +1,22 @@
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import init_db
 from .routers import elo, standings, matchup, games, upcoming, refresh, meta
+from .routers.upcoming import refresh_upcoming_db, _is_stale
+
+
+async def _startup_refresh():
+    if await _is_stale():
+        await refresh_upcoming_db()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    asyncio.create_task(_startup_refresh())  # fire-and-forget, non-blocking
     yield
 
 
