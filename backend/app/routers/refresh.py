@@ -11,7 +11,7 @@ async def _run_refresh():
     _refresh_running = True
     try:
         from backend.NBAScraper import NBAScraper
-        from backend.migrate import migrate
+        from backend.migrate import migrate_season
 
         today = date.today()
         season = today.year if today.month >= 10 else today.year - 1
@@ -19,9 +19,9 @@ async def _run_refresh():
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(
             None,
-            lambda: NBAScraper().data_years(beginning=season, end=season),
+            lambda: NBAScraper().data_years(beginning=season, end=season, force=True),
         )
-        await migrate(drop_first=False)
+        await migrate_season(season)
     finally:
         _refresh_running = False
         from backend.app.routers.upcoming import refresh_upcoming_db
@@ -34,3 +34,8 @@ async def refresh_data(background_tasks: BackgroundTasks):
         return {"message": "Refresh already in progress."}
     background_tasks.add_task(_run_refresh)
     return {"message": "Data refresh started in background."}
+
+
+@router.get("/refresh/status")
+async def refresh_status():
+    return {"running": _refresh_running}
