@@ -70,7 +70,13 @@ async def get_matchup(
         )
         .order_by(Game.date)
     )
-    h2h_all = h2h_result.scalars().all()
+    seen: set[tuple] = set()
+    h2h_all = []
+    for g in h2h_result.scalars().all():
+        key = (g.date, g.visitor, g.home)
+        if key not in seen:
+            seen.add(key)
+            h2h_all.append(g)
 
     if h2h_filter > 0:
         h2h = h2h_all[-h2h_filter:]
