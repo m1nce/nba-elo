@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import EloStandings from '@/pages/EloStandings'
 import Matchup from '@/pages/Matchup'
@@ -11,17 +12,43 @@ import Upcoming from '@/pages/Upcoming'
 
 export default function App() {
   const [refreshing, setRefreshing] = useState(false)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const queryClient = useQueryClient()
+
+  function stopPolling() {
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
+  }
+
+  useEffect(() => () => stopPolling(), [])
 
   async function handleRefresh() {
     setRefreshing(true)
     try {
-      const res = await api.refresh()
-      toast.success(res.message ?? 'Refresh started.')
+      await api.refresh()
     } catch {
       toast.error('Failed to start refresh.')
-    } finally {
       setRefreshing(false)
+      return
     }
+
+    pollRef.current = setInterval(async () => {
+      try {
+        const { running } = await api.refreshStatus()
+        if (!running) {
+          stopPolling()
+          setRefreshing(false)
+          queryClient.invalidateQueries()
+          toast.success('Data refreshed.')
+        }
+      } catch {
+        stopPolling()
+        setRefreshing(false)
+        toast.error('Lost contact with server during refresh.')
+      }
+    }, 2000)
   }
 
   return (
@@ -35,7 +62,18 @@ export default function App() {
           onClick={handleRefresh}
           disabled={refreshing}
         >
-          {refreshing ? 'Starting…' : 'Refresh Data'}
+          {refreshing && (
+            <svg
+              className="animate-spin h-4 w-4 mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+            </svg>
+          )}
+          {refreshing ? 'Refreshing…' : 'Refresh Data'}
         </Button>
       </header>
 

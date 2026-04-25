@@ -47,4 +47,7 @@ export const api = {
 
   refresh: () =>
     fetch(`${BASE}/refresh`, { method: 'POST' }).then(r => r.json()),
+
+  refreshStatus: () =>
+    get<{ running: boolean }>('/refresh/status'),
 }
